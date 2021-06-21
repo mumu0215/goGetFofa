@@ -47,8 +47,8 @@ func main() {
 		fmt.Println("please input search string")
 		os.Exit(1)
 	}
-	email:="vadirn@qq.com"
-	apiKey:="a199d5216bbae59e073b094e5324e4f4"
+	email:=""
+	apiKey:=""
 	clt := fofa.NewFofaClient([]byte(email), []byte(apiKey))
 	if clt == nil {
 		fmt.Printf("create fofa client\n")
