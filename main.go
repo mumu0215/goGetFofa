@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"github.com/fofapro/fofa-go/fofa"
 	jsoniter "github.com/json-iterator/go"
+	"io/ioutil"
 	"os"
+	"gopkg.in/yaml.v2"
 )
 
 var(
@@ -13,14 +15,18 @@ var(
 	outFile=flag.String("f","out.txt","output file")
 	json=jsoniter.ConfigCompatibleWithStandardLibrary
 )
-type result struct {
-	Domain  string `json:"domain,omitempty"`
-	Host    string `json:"host,omitempty"`
-	IP      string `json:"ip,omitempty"`
-	Port    string `json:"port,omitempty"`
-	Title   string `json:"title,omitempty"`
-	Country string `json:"country,omitempty"`
-	City    string `json:"city,omitempty"`
+//type result struct {
+//	Domain  string `json:"domain,omitempty"`
+//	Host    string `json:"host,omitempty"`
+//	IP      string `json:"ip,omitempty"`
+//	Port    string `json:"port,omitempty"`
+//	Title   string `json:"title,omitempty"`
+//	Country string `json:"country,omitempty"`
+//	City    string `json:"city,omitempty"`
+//}
+type config struct {
+	Email string `yaml:"Email"`
+	Api string `yaml:"Api"`
 }
 type response struct {
 	Error interface{} `json:"error"`
@@ -29,6 +35,21 @@ type response struct {
 	Query interface{} `json:"query"`
 	Results [][]string `json:"results"`
 	Size interface{}	`json:"size"`
+}
+
+func parseConfig(fileName string) config{
+	var temp config
+	configData,err:=ioutil.ReadFile(fileName)
+	if err!=nil{
+		fmt.Println("fail to read config file")
+		os.Exit(1)
+	}
+	err=yaml.Unmarshal(configData,&temp)
+	if err!=nil{
+		fmt.Println("fail to parse config file")
+		os.Exit(1)
+	}
+	return temp
 }
 func parseResult(result1 []byte) [][]string {
 	var temp response
@@ -47,14 +68,15 @@ func main() {
 		fmt.Println("please input search string")
 		os.Exit(1)
 	}
-	email:=""
-	apiKey:=""
+	myConfig:=parseConfig("config.yaml")
+	email:=myConfig.Email
+	apiKey:=myConfig.Api
 	clt := fofa.NewFofaClient([]byte(email), []byte(apiKey))
 	if clt == nil {
 		fmt.Printf("create fofa client\n")
 		return
 	}
-	result1, err := clt.QueryAsJSON(1, []byte(*searchStr))
+	result1, err := clt.QueryAsJSON(1, []byte(*searchStr),[]byte("domain,host,ip,port,title,country,city,protocol"))
 	if err != nil {
 		fmt.Printf("%v\n", err.Error())
 	}
